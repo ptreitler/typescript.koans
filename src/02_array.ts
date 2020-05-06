@@ -21,7 +21,10 @@
  *  _.chunk(["a", "b", "c", "d"], 3) => [["a", "b", "c"], ["d"]]
  *  _.chunk(["a", "b", "c"]) => [["a"], ["b"], ["c"]]
  * */
-export function chunk() {
+export function chunk<T>(input: Array<T>, size: number = 1): Array<Array<T>> {
+  return Array(Math.ceil(input.length / size))
+    .fill(0)
+    .map((_, i) => input.slice(i * size, i * size + size));
 }
 
 /**
@@ -37,7 +40,8 @@ export function chunk() {
  * _.compact([1, 0, 2, 0, 3]) => [1, 2, 3]
  * _.compact([1, undefined, NaN, null, 0, 2, 3]) => [1, 2, 3]
  */
-export function compact() {
+export function compact(input: Array<any>): Array<any> {
+  return input.filter((item) => item);
 }
 
 /**
@@ -48,7 +52,8 @@ export function compact() {
  *  _.head([1, 2, 3]) => 1
  *  _.head([]) => undefined
  */
-export function head() {
+export function head<T>(input: Array<T>): T {
+  return input[0];
 }
 
 /**
@@ -59,7 +64,10 @@ export function head() {
  *  _.initial<number>([1, 2, 3]) => [1, 2]
  *
  */
-export function initial() {
+export function initial<T>(input: Array<T>): Array<T> {
+  const length = input.length;
+  const endIndex = Math.max(length - 1, 1);
+  return input.slice(0, endIndex);
 }
 
 /**
@@ -71,7 +79,13 @@ export function initial() {
  * _.last([]) => undefined
  *
  */
-export function last() {
+export function last(input: Array<any>): any {
+  const length = input.length;
+  if (length == 0) {
+    return undefined;
+  } else {
+    return input[length - 1];
+  }
 }
 
 /**
@@ -84,7 +98,8 @@ export function last() {
  * _.drop([1, 2, 3, 4], 2) => [3, 4]
  * _.drop([1, 2, 3, 4]) => [2, 3, 4]
  */
-export function drop() {
+export function drop(input: Array<any>, count: number = 1): Array<any> {
+  return input.slice(count, input.length);
 }
 
 /**
@@ -97,22 +112,35 @@ export function drop() {
  * _.dropRight([1, 2, 3, 4]) => [1, 2, 3]
  *
  */
-export function dropRight() {
+export function dropRight(input: Array<any>, count: number = 1): Array<any> {
+  return input.slice(0, input.length - count);
 }
 
 interface DropWhilePredicate<T> {
   (value?: T, index?: number, collection?: Array<T>): boolean;
 }
 /**
-* ### dropWhile
-* dropWhile works similar to drop. It removes items from the beginning of the
-* array until the predicate returns false.
-*
-* ## Examples
-* _.dropWhile([1, 2, 3, 4, 5, 1], value => value < 3) => [3, 4, 5, 1]
-*
-*/
-export function dropWhile<T>(collection: Array<T>, predicate: DropWhilePredicate<T>): Array<T> {
+ * ### dropWhile
+ * dropWhile works similar to drop. It removes items from the beginning of the
+ * array until the predicate returns false.
+ *
+ * ## Examples
+ * _.dropWhile([1, 2, 3, 4, 5, 1], value => value < 3) => [3, 4, 5, 1]
+ *
+ */
+
+function negate<T>(predicate: DropWhilePredicate<T>): DropWhilePredicate<T> {
+  return function () {
+    return !predicate.apply(this, arguments);
+  };
+}
+
+export function dropWhile<T>(
+  collection: Array<T>,
+  predicate: DropWhilePredicate<T>
+): Array<T> {
+  const startIndex = collection.findIndex(negate(predicate));
+  return collection.slice(startIndex, collection.length);
 }
 
 /**
@@ -124,7 +152,12 @@ export function dropWhile<T>(collection: Array<T>, predicate: DropWhilePredicate
  * _.dropRightWhile([5, 4, 3, 2, 1], value => value < 3) => [5, 4, 3]
  *
  */
-export function dropRightWhile() {
+export function dropRightWhile<T>(
+  collection: Array<T>,
+  predicate: DropWhilePredicate<T>
+) {
+  const endOffset = collection.slice().reverse().findIndex(negate(predicate));
+  return collection.slice(0, collection.length - endOffset);
 }
 
 /**
@@ -135,11 +168,24 @@ export function dropRightWhile() {
  * ## Examples
  * _.fill<any>([4, 6, 8, 10], "* ", 1, 3) => [4, "* ", "* ", 10]
  */
-export function fill() {
+export function fill<T>(
+  collection: Array<T>,
+  replacement: T,
+  startIndex: number,
+  endIndex: number
+) {
+  const result = collection.slice();
+
+  for (let i = startIndex; i < endIndex; i++) {
+    result[i] = replacement;
+  }
+
+  return result;
 }
 
 // Here we define an interface for the predicate used in the findIndex function.
-export interface FindIndexPredicate {
+export interface FindIndexPredicate<T> {
+  (value?: T, index?: number, collection?: Array<T>): boolean;
 }
 
 /**
@@ -155,7 +201,13 @@ export interface FindIndexPredicate {
  * _.findIndex([4, 6, 6, 8, 10], value => value === 6, 2) => 2
  *
  */
-export function findIndex() {
+export function findIndex<T>(
+  collection: Array<T>,
+  predicate: FindIndexPredicate<T>,
+  startIndex: number = 0
+): number {
+  const foundIndex = collection.slice(startIndex).findIndex(predicate);
+  return foundIndex == -1 ? foundIndex : startIndex + foundIndex;
 }
 
 /**
@@ -170,7 +222,16 @@ export function findIndex() {
  * _.findLastIndex([4, 6, 6, 8, 10], value => value === 6, 1) => 1
  *
  */
-export function findLastIndex() {
+export function findLastIndex<T>(
+  collection: Array<T>,
+  predicate: FindIndexPredicate<T>,
+  startIndex: number = collection.length - 1
+) {
+  for (let i = startIndex; i >= 0; i--) {
+    if (predicate(collection[i], i, collection)) return i;
+  }
+
+  return -1;
 }
 
 /**
@@ -184,7 +245,9 @@ export function findLastIndex() {
  * _.nth<number>([1, 2, 3]) => 1
  *
  */
-export function nth() {
+
+export function nth<T>(array: Array<T>, n: number = 0): T {
+  return array[n];
 }
 
 /**
@@ -194,5 +257,18 @@ export function nth() {
  * // We can also use something called "union types" here.
  * _.zip<string | number | boolean>(["a", "b"], [1, 2], [true, false]) => [["a", 1, true], ["b", 2, false]]
  */
-export function zip() {
+export function zip<T, U, V>(
+  array1: Array<T>,
+  array2: Array<U>,
+  array3: Array<V>
+): Array<Array<T | U | V>> {
+  let result = new Array();
+
+  for (let i = 0; i < array1.length; i++) {
+    let entry = new Array();
+    entry.push(array1[i], array2[i], array3[i]);
+    result.push(entry);
+  }
+
+  return result;
 }

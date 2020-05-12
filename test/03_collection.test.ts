@@ -20,7 +20,7 @@ describe("03_collection", function () {
         const collection: _.Dictionary<string> = {
           "0": "first",
           "1": "second",
-          "2": "third"
+          "2": "third",
         };
         const iteratee = sinon.spy();
         _.forEach(collection, iteratee);
@@ -64,9 +64,9 @@ describe("03_collection", function () {
       context("when iteratee always returns true", function () {
         it("should return true", function () {
           const collection: _.Dictionary<number> = {
-            "a": 1,
-            "b": 2,
-            "c": 3
+            a: 1,
+            b: 2,
+            c: 3,
           };
           const iteratee = sinon.stub().returns(true);
           expect(_.every<number>(collection, iteratee)).to.be.equal(true);
@@ -76,9 +76,9 @@ describe("03_collection", function () {
       context("when iteratee returns false", function () {
         it("should return false and exit early", function () {
           const collection: _.Dictionary<number> = {
-            "a": 1,
-            "b": 2,
-            "c": 3
+            a: 1,
+            b: 2,
+            c: 3,
           };
           const iteratee = sinon.stub().returns(false);
           expect(_.every<number>(collection, iteratee)).to.be.equal(false);
@@ -90,7 +90,7 @@ describe("03_collection", function () {
         const collection: _.Dictionary<string> = {
           "0": "first",
           "1": "second",
-          "2": "third"
+          "2": "third",
         };
         const iteratee = sinon.stub().returns(true);
         _.every<string>(collection, iteratee);
@@ -107,15 +107,24 @@ describe("03_collection", function () {
         it("should return copy of array", function () {
           const collection = [1, 2, 3];
           const iteratee = sinon.stub().returns(true);
-          expect(_.filter<number>(collection, iteratee)).to.deep.equal([1, 2, 3]);
+          expect(_.filter<number>(collection, iteratee)).to.deep.equal([
+            1,
+            2,
+            3,
+          ]);
         });
       });
 
       context("when iteratee returns false", function () {
         it("should ignore item", function () {
           const collection = [1, 2, 3, 4, 1, 2];
-          const iteratee = x => x < 3;
-          expect(_.filter<number>(collection, iteratee)).to.deep.equal([1, 2, 1, 2]);
+          const iteratee = (x) => x < 3;
+          expect(_.filter<number>(collection, iteratee)).to.deep.equal([
+            1,
+            2,
+            1,
+            2,
+          ]);
         });
       });
     });
@@ -124,14 +133,14 @@ describe("03_collection", function () {
       context("when iteratee always returns true", function () {
         it("should return true", function () {
           const collection: _.Dictionary<number> = {
-            "a": 1,
-            "b": 2,
-            "c": 3
+            a: 1,
+            b: 2,
+            c: 3,
           };
           const iteratee = (v, k) => !(v === 2 && k === "b");
           expect(_.filter<number>(collection, iteratee)).to.deep.equal({
-            "a": 1,
-            "c": 3
+            a: 1,
+            c: 3,
           });
         });
       });
@@ -149,12 +158,15 @@ describe("03_collection", function () {
 
     it("should apply a function to every value in an object", () => {
       const collection: _.Dictionary<number> = {
-        "a": 1,
-        "b": 2
+        a: 1,
+        b: 2,
       };
       const iteratee = (value, key) => [value, key];
       const squaredValues = _.map(collection, iteratee);
-      expect(squaredValues).to.deep.equal([[1, "a"], [2, "b"]]);
+      expect(squaredValues).to.deep.equal([
+        [1, "a"],
+        [2, "b"],
+      ]);
     });
   });
 
@@ -169,7 +181,7 @@ describe("03_collection", function () {
     });
 
     it("should be able to transform an object", function () {
-      const collection = { 'a': 1, 'b': 2, 'c': 1 };
+      const collection = { a: 1, b: 2, c: 1 };
       let seed = {};
       const iteratee = (result, value, key) => {
         if (!result[value]) {
@@ -179,10 +191,9 @@ describe("03_collection", function () {
         return result;
       };
       const actual = _.reduce(collection, iteratee, seed);
-      const expected = { '1': ['a', 'c'], '2': ['b'] };
+      const expected = { "1": ["a", "c"], "2": ["b"] };
 
-      expect(actual).to.equal(expected);
+      expect(actual).to.deep.equal(expected);
     });
-
   });
 });

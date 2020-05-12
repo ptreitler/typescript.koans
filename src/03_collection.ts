@@ -45,7 +45,19 @@ interface DictionaryForEachIteratee<T> {
  *  _.forEach(collection, iteratee); => result === [['0', 'first'], ['1', 'second'], ['2', 'thidrd']];
  *
  */
-export function forEach() {
+export function forEach<T>(
+  collection: Array<T> | Dictionary<T>,
+  iteratee: ArrayForEachIteratee<T> | DictionaryForEachIteratee<T>
+): Array<Array<any>> {
+  return collection instanceof Array
+    ? collection.map(iteratee as ArrayForEachIteratee<T>)
+    : Object.keys(collection).map((key) =>
+        (iteratee as DictionaryForEachIteratee<T>)(
+          collection[key],
+          key,
+          collection
+        )
+      );
 }
 
 interface EveryIteratee<T> {
@@ -64,7 +76,25 @@ interface EveryIteratee<T> {
  *  _.every([true, 1, null, 'yes'], Boolean); => false
  *  _.every([null, null, null], (value, index, collection) => value === null); => true
  */
-export function every() {
+export function every<T>(
+  collection: Array<T> | Dictionary<T>,
+  iteratee: ArrayForEachIteratee<T> | DictionaryForEachIteratee<T>
+): Boolean {
+  if (collection instanceof Array) {
+    let arrayIteratee = iteratee as ArrayForEachIteratee<T>;
+    for (let i = 0; i < collection.length; i++) {
+      if (!arrayIteratee(collection[i], i, collection)) return false;
+    }
+  } else {
+    let i = 0;
+    let collectionIteratee = iteratee as DictionaryForEachIteratee<T>;
+
+    for (let key in Object.keys(collection)) {
+      if (!collectionIteratee(collection[key], key, collection)) return false;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -88,7 +118,29 @@ export function every() {
  *  _.filter<number>(collection, iteratee) => { 'a': 1, 'c': 3 }
  *
  */
-export function filter() {
+export function filter<T>(
+  collection: Array<T> | Dictionary<T>,
+  iteratee: ArrayForEachIteratee<T> | DictionaryForEachIteratee<T>
+): Array<T> | Dictionary<T> {
+  if (collection instanceof Array) {
+    let result = Array<T>();
+    for (let i = 0; i < collection.length; i++) {
+      let item = collection[i];
+      if ((iteratee as ArrayForEachIteratee<T>)(item, i, collection)) {
+        result.push(item);
+      }
+    }
+    return result;
+  } else {
+    const result: Dictionary<T> = {};
+    Object.keys(collection).forEach((key) => {
+      let value = collection[key];
+      if ((iteratee as DictionaryForEachIteratee<T>)(value, key, collection)) {
+        result[key] = value;
+      }
+    });
+    return result;
+  }
 }
 
 /**
@@ -110,7 +162,33 @@ export function filter() {
  *
  *  _.map<number>(collection, iteratee) => [[1,'a'], [2, 'b']]
  */
-export function map() {
+export function map<T>(
+  collection: Array<T> | Dictionary<T>,
+  iteratee: ArrayForEachIteratee<T> | DictionaryForEachIteratee<T>
+): Array<any> {
+  let result = Array();
+  if (collection instanceof Array) {
+    for (let i = 0; i < collection.length; i++) {
+      const item = collection[i];
+      const iterationResult = (iteratee as ArrayForEachIteratee<T>)(
+        item,
+        i,
+        collection
+      );
+      result.push(iterationResult);
+    }
+  } else {
+    Object.keys(collection).forEach((key) => {
+      const value = collection[key];
+      const iterationResult = (iteratee as DictionaryForEachIteratee<T>)(
+        value,
+        key,
+        collection
+      );
+      result.push(iterationResult);
+    });
+  }
+  return result;
 }
 
 /**
@@ -133,5 +211,32 @@ export function map() {
  *    }, {}); => { '1': ['a', 'c'], '2': ['b'] }
  *
  */
-export function reduce() {
+interface ReduceIteratee<T> {
+  (
+    accumulator?: T,
+    value?: T,
+    index?: number | string,
+    collection?: Array<T> | Dictionary<T>
+  ): any;
+}
+
+export function reduce<T>(
+  collection: Array<T> | Dictionary<T>,
+  iteratee: ReduceIteratee<T>,
+  seed: T = collection instanceof Array ? collection[0] : collection.values[0]
+): T {
+  let accumulator = seed;
+  if (collection instanceof Array) {
+    for (let i = 0; i < collection.length; i++) {
+      const item = collection[i];
+      accumulator = iteratee(accumulator, item, i, collection);
+    }
+    return accumulator;
+  } else {
+    Object.keys(collection).forEach((key) => {
+      const item = collection[key];
+      accumulator = iteratee(accumulator, item, key, collection);
+    });
+    return accumulator;
+  }
 }

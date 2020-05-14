@@ -257,11 +257,11 @@ export function nth<T>(array: Array<T>, n: number = 0): T {
  * // We can also use something called "union types" here.
  * _.zip<string | number | boolean>(["a", "b"], [1, 2], [true, false]) => [["a", 1, true], ["b", 2, false]]
  */
-export function zip<T, U, V>(
+export function zip<T>(
   array1: Array<T>,
-  array2: Array<U>,
-  array3: Array<V>
-): Array<Array<T | U | V>> {
+  array2: Array<T>,
+  array3: Array<T>
+): Array<Array<T>> {
   let result = new Array();
 
   for (let i = 0; i < array1.length; i++) {

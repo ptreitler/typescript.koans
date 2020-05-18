@@ -8,12 +8,17 @@
 
 // ### join
 // Converts all elements in array into a string separated by separator.
-export function join() {
+export function join<T>(array: Array<T>, separator: string = ",") {
+  return array.join(separator);
 }
 
 // ### ary
 // ary creates a new function. The returned function invokes func - first
 // argument - with n - second argument - arguments, discarding any superfluous
 // arguments.
-export function ary() {
+export function ary(f: Function, argc: number): Function {
+  return function (...args: any[]): any {
+    const argsToPass = args.slice(0, argc);
+    return f(...argsToPass);
+  };
 }
